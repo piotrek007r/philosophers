@@ -1,0 +1,1 @@
+gcc -g -pthreads main.c -o main
