@@ -1,0 +1,2 @@
+1. Koncepcja porównywania z left_fork z right_fork może mieć kluczowe znaczenie. 
+    Na razie zostanę przy wersji && abu sąsiednich fork == 0.
