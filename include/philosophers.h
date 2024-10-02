@@ -7,10 +7,12 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <stdbool.h>
+#include <sys/time.h>
 
 #define EAT 0
 #define SLEEP 1
 #define THINK 2
+#define TIME_UNIT 1000
 
 
 // libf utils
@@ -25,12 +27,14 @@ void	*ft_calloc(size_t nmemb, size_t size);
 typedef struct philo_s
 {
     int philo_num;
-    int eating;
+    int eating; // ??
     int living;
-    int sleeping;
-    int current_state;
-    int status_change;
+    int sleeping; // ??
+    int cur_state;
+    int status_change; // ??
     int has_eaten;
+    int times_eaten;
+    long last_meal;
 } philo_t;
 
 typedef struct data_s
@@ -38,10 +42,11 @@ typedef struct data_s
     int num_of_philos;
     int num_of_meals;
     int time_to_eat;
-    int time_to_die;
+    int time_to_die; 
     int time_to_sleep;
     int *forks;
     int *philo_states;
+    int cur_time;
     pthread_mutex_t *fork_mutexes;
     philo_t *philo;
 } data_t; 
