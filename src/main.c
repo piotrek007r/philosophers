@@ -1,37 +1,16 @@
 #include "../include/philosophers.h"
 
-void	ft_tester(data_t *data, int key)
-{
-	if (key == 1)
-	{
-		for (int i = 0; i < data->num_of_philos; i++)
-		{
-			printf("philo %d, current status: %d eated: %d living %d\n", i + 1, data->philo[i].cur_state,
-				data->philo[i].times_eaten,
-				data->philo[i].living);
-		}
-		printf("-------------------------------\n");
-	}
-	if (key == 2)
-	{
-		for (int i = 0; i < data->num_of_philos; i++)
-		{
-			printf("key num %d is: %d\n", i, data->forks[i]);
-		}
-	}
-}
 
-long ft_timepassed(struct timeval start, struct timeval end)
-{
-	long seconds_diff = end.tv_sec - start.tv_sec;
-    long useconds_diff = end.tv_usec - start.tv_usec;
-
-    return (seconds_diff * 1000000) + useconds_diff;
+void ft_print_state(data_t *data, long time_elapsed, int philo, char *msg)
+{	
+	pthread_mutex_lock(&data->print_mutex);
+	printf("%ld %d %s\n", time_elapsed, philo + 1, msg);
+	pthread_mutex_unlock(&data->print_mutex);
 }
 
 void	ft_eating(tread_data_t *tr_data, int left_fork, int right_fork)
 {
-	struct timeval start;
+	struct timeval start_eat, start_sleep;
 	long time_elapsed;
 
 	while (1)
@@ -41,61 +20,47 @@ void	ft_eating(tread_data_t *tr_data, int left_fork, int right_fork)
 			tr_data->data->forks[left_fork] = 1;
 			tr_data->data->forks[right_fork] = 1;
 			tr_data->data->philo[tr_data->philo_index].cur_state = EAT;
-			tr_data->data->philo[tr_data->philo_index].has_eaten = true;
+			// tr_data->data->philo[tr_data->philo_index].has_eaten = true; // hmm to remove?
 			tr_data->data->philo[tr_data->philo_index].times_eaten++;
 			
 			// printf("++philo nr %d sta/rt eating at %d minisec\n", tr_data->philo_index, tr_data->data->cur_time);
 			
 			// Capture start time
-			gettimeofday(&start, NULL);
-			long last_meal_time = tr_data->data->philo[tr_data->philo_index].last_meal; // last_meal should be in microseconds
-			long current_time = start.tv_sec * 1000000 + start.tv_usec; // current time in microseconds
-			time_elapsed = current_time - last_meal_time; // Calculate elapsed time since last meal
-			printf("philo %d, time_elapsed %ld\n", tr_data->philo_index + 1, time_elapsed);
-			if(time_elapsed > 700000 && time_elapsed < 10000000)
-				exit(0);
+			gettimeofday(&start_eat, NULL);
+			time_elapsed = ft_timestamp(&tr_data->data->start_time, &start_eat);
+			tr_data->data->philo[tr_data->philo_index].last_meal = time_elapsed;
+			ft_print_state(tr_data->data, time_elapsed, tr_data->philo_index, "is eating");
+			// long last_meal_time = tr_data->data->philo[tr_data->philo_index].last_meal; // last_meal should be in microseconds
+			// long current_time = start_eat.tv_sec * 1000000 + start_eat.tv_usec; // current time in microseconds
+			// time_elapsed = current_time - last_meal_time; // Calculate elapsed time since last meal
+			// // printf("philo %d, time_elapsed %ld\n", tr_data->philo_index + 1, time_elapsed);
+			// if(time_elapsed > 700000 && time_elapsed < 10000000)
+			// 	exit(0);
 			// Simulate eating
 			usleep(tr_data->data->time_to_eat * TIME_UNIT);
-			
+			// gettimeofday(&start_eat, NULL);
+			// time_elapsed = ft_timestamp(&tr_data->data->start_time, &start_eat);
+			// tr_data->data->philo[tr_data->philo_index].last_meal = time_elapsed;
+			// printf("%ld %d finish eating\n", time_elapsed, tr_data->philo_index + 1);
 			// Calculate the time elapsed from last_meal to now
-
-			
 			// Update last_meal to current time
-			tr_data->data->philo[tr_data->philo_index].last_meal = current_time;
+			// tr_data->data->philo[tr_data->philo_index].last_meal = current_time;
 
 			// Release forks
 			tr_data->data->forks[left_fork] = 0;
 			tr_data->data->forks[right_fork] = 0;
 			
 			tr_data->data->philo[tr_data->philo_index].cur_state = SLEEP;
+			gettimeofday(&start_sleep, NULL);
+			time_elapsed = ft_timestamp(&tr_data->data->start_time, &start_sleep);
+			ft_print_state(tr_data->data, time_elapsed, tr_data->philo_index, "is sleeping");
 			break;
 		}
 		// usleep(10); // adjust this
 	}
 }
 
-// bool ft_relaxed_priority(tread_data_t *tr_data) {
-//     int i;
-//     int minimum = tr_data->data->philo[tr_data->philo_index].living;
-//     int skip_count = 0; // Count how many times the philosopher has been skipped
-
-//     // Check how many philosophers have lower living values
-//     for (i = 0; i < tr_data->data->num_of_philos; i++) {
-//         if (tr_data->data->philo[i].living < minimum) {
-//             skip_count++;
-//         }
-//     }
-
-//     // If this philosopher is skipped more than a threshold (e.g., 2), allow them to eat
-//     if (skip_count >= 2) {
-//         return true; // Let this philosopher eat
-//     }
-
-//     // Allow the philosopher to eat if they have the lowest living value
-//     return (skip_count == 0);
-// }
-
-bool ft_relaxed_priority(tread_data_t *tr_data)
+bool ft_has_prioryty(tread_data_t *tr_data)
 {
 	int i;
 	int cur;
@@ -113,9 +78,11 @@ bool ft_relaxed_priority(tread_data_t *tr_data)
 void	*ft_philo_routine(void *arg)
 {
 	tread_data_t	*tr_data;
+	struct timeval fork_taken, start_thinking;
 	int				i;
 	int				left_fork;
 	int				right_fork;
+	long time_elapsed;
 
 	tr_data = (tread_data_t *)arg;
 	i = 0;
@@ -128,23 +95,35 @@ void	*ft_philo_routine(void *arg)
 	{
 		if (tr_data->data->philo[tr_data->philo_index].cur_state == THINK)
 		{
-			if(ft_relaxed_priority(tr_data))
+			if(ft_has_prioryty(tr_data))
 			{
-			if (left_fork < right_fork)
-			{
-				pthread_mutex_lock(&tr_data->data->fork_mutexes[left_fork]);
-				pthread_mutex_lock(&tr_data->data->fork_mutexes[right_fork]);
-			}
-			else
-			{
-				pthread_mutex_lock(&tr_data->data->fork_mutexes[right_fork]);
-				pthread_mutex_lock(&tr_data->data->fork_mutexes[left_fork]);
-			}
-			ft_eating(tr_data, left_fork, right_fork);
+				if (left_fork < right_fork)
+				{	
+					pthread_mutex_lock(&tr_data->data->fork_mutexes[left_fork]);
+					gettimeofday(&fork_taken, NULL);
+					time_elapsed = ft_timestamp(&tr_data->data->start_time, &fork_taken);
+						ft_print_state(tr_data->data, time_elapsed, tr_data->philo_index , "has taken a fork");
+					pthread_mutex_lock(&tr_data->data->fork_mutexes[right_fork]);
+					gettimeofday(&fork_taken, NULL);
+					time_elapsed = ft_timestamp(&tr_data->data->start_time, &fork_taken);
+						ft_print_state(tr_data->data, time_elapsed, tr_data->philo_index, "has taken a fork");
+				}
+				else
+				{
+					pthread_mutex_lock(&tr_data->data->fork_mutexes[left_fork]);
+					gettimeofday(&fork_taken, NULL);
+					time_elapsed = ft_timestamp(&tr_data->data->start_time, &fork_taken);
+						ft_print_state(tr_data->data, time_elapsed, tr_data->philo_index , "has taken a fork");
+					pthread_mutex_lock(&tr_data->data->fork_mutexes[right_fork]);
+					gettimeofday(&fork_taken, NULL);
+					time_elapsed = ft_timestamp(&tr_data->data->start_time, &fork_taken);
+						ft_print_state(tr_data->data, time_elapsed, tr_data->philo_index, "has taken a fork");
+				}
+				// usleep(10);
+				ft_eating(tr_data, left_fork, right_fork);
 
-			pthread_mutex_unlock(&tr_data->data->fork_mutexes[left_fork]);
-			pthread_mutex_unlock(&tr_data->data->fork_mutexes[right_fork]);
-
+				pthread_mutex_unlock(&tr_data->data->fork_mutexes[left_fork]);
+				pthread_mutex_unlock(&tr_data->data->fork_mutexes[right_fork]);
 			}
 			// printf("unlocking fork: %d and %d\n", left_fork, right_fork);
 
@@ -157,69 +136,52 @@ void	*ft_philo_routine(void *arg)
 			// printf("++philo nr %d has awake at %d minisec\n", tr_data->philo_index,
 			// 	tr_data->data->cur_time);
 			tr_data->data->philo[tr_data->philo_index].cur_state = THINK;
+			gettimeofday(&start_thinking, NULL);
+			time_elapsed = ft_timestamp(&tr_data->data->start_time, &start_thinking);
+			ft_print_state(tr_data->data, time_elapsed, tr_data->philo_index, "is thinking");
+
 		}
 		if(tr_data->data->num_of_meals > 0) 
 		{
 			// printf("num of meals: %d\n", tr_data->data->philo[tr_data->philo_index].times_eaten);
 			if(tr_data->data->philo[tr_data->philo_index].times_eaten == tr_data->data->num_of_meals)
 			{
-				printf("philo nr %d finished\n", tr_data->philo_index);
+				printf("philo nr %d finished\n", tr_data->philo_index + 1); // remove this
+				tr_data->data->philo[tr_data->philo_index].is_feed = true;
 				break;
 			}
 		}
-		// i++;
-		// if(i > 0)
-		//     break ;
-		// usleep(100);
+		usleep(100); // hmm adjust this
 	}
 }
 
-void	ft_global_clock(data_t *data)
+void ft_monitor(data_t *data)
 {
-	int	i;
-	int	temp;
-	int	seconds;
-	int all_feed;
-
-	data->cur_time = 0;
-	all_feed = false;
-	while (1)
+	struct timeval cur_time, death_time;
+	int i;
+	long time_elapsed;
+	while(1)
 	{
-  	// printf("seconds : %ld\nmicro seconds : %ld\n",
-    // 	current_time.tv_sec, current_time.tv_usec);
-		usleep(9600);
+		usleep(10); // might be to big BUT only for big number for many philos
+		gettimeofday(&cur_time, NULL);
+		time_elapsed = ft_timestamp(&data->start_time, &cur_time);
 		i = 0;
-		temp = 0;
-		while (i < data->num_of_philos)
+		while(i < data->num_of_philos)
 		{
-			if (data->philo[i].has_eaten == 1)
+			long meal_times = time_elapsed - data->philo[i].last_meal;
+			data->philo[i].living = meal_times;
+			if(meal_times > data->time_to_die && !data->philo[i].is_feed)
 			{
-				// printf("has_eaten!!\n");
-				data->philo[i].has_eaten = false;
-				data->philo[i].living = 0;
-			}
-			if(data->philo[i].times_eaten == data->num_of_meals)
-			    temp++;
-			if(temp == data->num_of_philos && data->num_of_meals > 0)
-			{
-			    printf("All mouth are feed!!!\n");
-				all_feed = true;
-			    break;
-			}
-			data->philo[i].living += 10;
-			if (data->philo[i].living == data->time_to_die)
-			{
-				printf("Die motherfucker!\n");
-				// make function to close app
+				gettimeofday(&death_time, NULL);
+				time_elapsed = ft_timestamp(&data->start_time, &death_time);
+				printf("%ld %d died\n", time_elapsed, i + 1);
+				printf("lived for %ld died\n", meal_times);
+				// close it in a nice way
 				exit(0);
 			}
 			i++;
 		}
-		ft_tester(data, 1);
-		data->cur_time += 10;
-		// printf("seconds passed: %d\n", data->cur_time);
-		if (all_feed == true)
-			break ;
+		// ft_tester(data, 1);
 	}
 }
 
@@ -232,6 +194,13 @@ void	ft_init(data_t *data)
 
 	data->fork_mutexes = malloc(data->num_of_philos * sizeof(pthread_mutex_t));
 	i = 0;
+
+	if(pthread_mutex_init(&data->print_mutex, NULL) != 0)
+	{
+		perror("Failed to initialize mutex");
+		exit(EXIT_FAILURE);
+	}
+
 	while (i < data->num_of_philos)
 	{
 		if (pthread_mutex_init(&data->fork_mutexes[i], NULL) != 0)
@@ -253,10 +222,11 @@ void	ft_init(data_t *data)
 			perror("pthread_create");
 			exit(EXIT_FAILURE);
 		}
-		// usleep(100); consider this
+		usleep(100); 
 		i++;
 	}
-	ft_global_clock(data);
+	// ft_global_clock(data);
+	ft_monitor(data);
 	i = 0;
 	while (i < data->num_of_philos)
 	{
@@ -276,6 +246,11 @@ void	ft_init(data_t *data)
 			exit(EXIT_FAILURE);
 		}
 		i++;
+	}
+	if(pthread_mutex_destroy(&data->print_mutex) != 0)
+	{
+		perror("Failed to destroy mutex");
+		exit(EXIT_FAILURE);
 	}
 }
 
@@ -305,11 +280,14 @@ void	ft_create_philos(data_t *data, char **argv)
 int	main(int argc, char **argv)
 {
 	data_t	*data;
+	struct timeval start_time;
 
 	setbuf(stdout, NULL); // Remove this !!!
 	if (argc == 5 || argc == 6)
 	{
 		data = malloc(sizeof(data_t)); // to free
+		gettimeofday(&start_time, NULL);
+		data->start_time = start_time;
 		if (argc == 6)
 			data->num_of_meals = ft_atoi(argv[5]);
 		else
@@ -442,3 +420,86 @@ GARBAGE
 			//     pthread_mutex_lock(&tread_data->data->fork_mutexes[right_fork]);
 			// }
 */
+// long ft_timepassed(struct timeval start, struct timeval end)
+// {
+// 	long seconds_diff = end.tv_sec - start.tv_sec;
+//     long useconds_diff = end.tv_usec - start.tv_usec;
+
+//     return (seconds_diff * 1000000) + useconds_diff;
+// }
+
+// bool ft_relaxed_priority(tread_data_t *tr_data) {
+//     int i;
+//     int minimum = tr_data->data->philo[tr_data->philo_index].living;
+//     int skip_count = 0; // Count how many times the philosopher has been skipped
+
+//     // Check how many philosophers have lower living values
+//     for (i = 0; i < tr_data->data->num_of_philos; i++) {
+//         if (tr_data->data->philo[i].living < minimum) {
+//             skip_count++;
+//         }
+//     }
+
+//     // If this philosopher is skipped more than a threshold (e.g., 2), allow them to eat
+//     if (skip_count >= 2) {
+//         return true; // Let this philosopher eat
+//     }
+
+//     // Allow the philosopher to eat if they have the lowest living value
+//     return (skip_count == 0);
+// }
+
+// void	ft_global_clock(data_t *data)
+// {
+// 	int	i;
+// 	int	temp;
+// 	int	seconds;
+// 	int all_feed;
+// 	struct timeval death_time;
+// 	long time_elapsed;
+
+// 	data->cur_time = 0;
+// 	all_feed = false;
+// 	while (1)
+// 	{
+//   	// printf("seconds : %ld\nmicro seconds : %ld\n",
+//     // 	current_time.tv_sec, current_time.tv_usec);
+// 		usleep(9400);
+// 		data->cur_time += 10;
+// 		i = 0;
+// 		temp = 0;
+// 		while (i < data->num_of_philos)
+// 		{
+// 			if (data->philo[i].has_eaten == 1)
+// 			{
+// 				// printf("has_eaten!!\n");
+// 				data->philo[i].has_eaten = false;
+// 				data->philo[i].living = 0;
+// 			}
+// 			if(data->philo[i].times_eaten == data->num_of_meals)
+// 			    temp++;
+// 			if(temp == data->num_of_philos && data->num_of_meals > 0)
+// 			{
+// 			    printf("All mouth are feed!!!\n");
+// 				all_feed = true;
+// 			    break;
+// 			}
+// 			data->philo[i].living += 10;
+// 			if (data->philo[i].living == data->time_to_die)
+// 			{
+// 				gettimeofday(&death_time, NULL);
+// 				time_elapsed = ft_timestamp(&data->start_time, &death_time);
+// 				printf("%ld %d died\n", time_elapsed, i + 1);
+// 				printf("livied for %d died\n", data->philo[i].living);
+
+// 				// make function to close app
+// 				exit(0);
+// 			}
+// 			i++;
+// 		}
+// 		// ft_tester(data, 1);
+// 		// printf("seconds passed: %d\n", data->cur_time);
+// 		if (all_feed == true)
+// 			break ;
+// 	}
+// }
