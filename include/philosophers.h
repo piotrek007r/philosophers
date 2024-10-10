@@ -25,6 +25,7 @@ typedef struct philo_s
     int has_eaten;
     int times_eaten;
     bool is_feed;
+    bool has_died;
     long last_meal;
 } philo_t;
 
@@ -38,9 +39,13 @@ typedef struct data_s
     int *forks;
     int *philo_states;
     int cur_time;
+    bool philo_died;
+    bool all_feed;
     struct timeval start_time;
     pthread_mutex_t *fork_mutexes;
     pthread_mutex_t print_mutex;
+    pthread_mutex_t general;
+    pthread_mutex_t death_mutex;
     philo_t *philo;
 } data_t; 
 
@@ -63,6 +68,19 @@ void	*ft_calloc(size_t nmemb, size_t size);
 
 void	ft_tester(data_t *data, int key); // to remove
 long ft_timestamp(struct timeval *start_time, struct timeval *cur_time);
+void ft_print_state(data_t *data, long time_elapsed, int philo, char *msg);
+bool ft_has_prioryty(tread_data_t *tr_data);
 
- 
+
+// actions
+
+bool ft_death(data_t *data);
+
+//
+
+void ft_destroy_mutex(data_t *data);
+void ft_close(data_t *data, pthread_t *th, tread_data_t **tr_data);
+void ft_free_allocs(data_t *data, tread_data_t **tr_data);
+
+
 #endif

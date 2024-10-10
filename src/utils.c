@@ -21,6 +21,36 @@ void	ft_tester(data_t *data, int key)
 	}
 }
 
+bool ft_has_prioryty(tread_data_t *tr_data)
+{
+	int i;
+	int cur;
+	cur = tr_data->philo_index;
+	i = 0;
+	pthread_mutex_lock(&tr_data->data->general);
+	while(i < tr_data->data->num_of_philos)
+	{
+		if(tr_data->data->philo[i].living > tr_data->data->philo[cur].living)
+		{
+			pthread_mutex_unlock(&tr_data->data->general);
+			return false;
+		}
+		i++;
+	}
+	pthread_mutex_unlock(&tr_data->data->general);
+	return true;
+}
+
+void ft_print_state(data_t *data, long time_elapsed, int philo, char *msg)
+{	
+	pthread_mutex_lock(&data->print_mutex);
+	if(!data->philo_died)  // big problem here with race condition
+	{
+		printf("%ld %d %s\n", time_elapsed, philo + 1, msg);
+	}
+	pthread_mutex_unlock(&data->print_mutex);
+}
+
 long ft_timestamp(struct timeval *start_time, struct timeval *cur_time)
 {
 	long start;
