@@ -1,8 +1,8 @@
 #include "../include/philosophers.h"
 
-void ft_destroy_mutex(data_t *data)
+void	ft_destroy_mutex(data_t *data)
 {
-	int i;
+	int	i;
 
 	i = 0;
 	while (i < data->num_of_philos)
@@ -14,28 +14,28 @@ void ft_destroy_mutex(data_t *data)
 		}
 		i++;
 	}
-	if(pthread_mutex_destroy(&data->print_mutex) != 0)
+	if (pthread_mutex_destroy(&data->print_mutex) != 0)
 	{
 		perror("Failed to destroy mutex");
 		exit(EXIT_FAILURE);
 	}
-	if(pthread_mutex_destroy(&data->general) != 0)
+	if (pthread_mutex_destroy(&data->general) != 0)
 	{
 		perror("Failed to destroy mutex");
 		exit(EXIT_FAILURE);
 	}
 }
 
-void ft_free_allocs(data_t *data, tread_data_t **tr_data)
+void	ft_free_allocs(data_t *data, tread_data_t **tr_data)
 {
-	int i;
+	int	i;
 
 	i = 0;
 	free(data->fork_mutexes);
 	free(data->forks);
 	free(data->philo_states);
 	free(data->philo);
-	while(i < data->num_of_philos)
+	while (i < data->num_of_philos)
 	{
 		free(tr_data[i]);
 		i++;
@@ -43,9 +43,9 @@ void ft_free_allocs(data_t *data, tread_data_t **tr_data)
 	free(data);
 }
 
-void ft_close(data_t *data, pthread_t *th, tread_data_t **tr_data)
+void	ft_close(data_t *data, pthread_t *th, tread_data_t **tr_data)
 {
-	int i;
+	int	i;
 
 	i = 0;
 	while (i < data->num_of_philos)

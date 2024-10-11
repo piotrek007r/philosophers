@@ -58,16 +58,11 @@ typedef struct tread_data_s
 } tread_data_t;
 
 
-// libf utils
-
-void	ft_putstr_fd(char *s, int fd);
-void	ft_putchar_fd(char c, int fd);
-void	ft_putnbr_fd(int n, int fd);
-int	    ft_atoi(const char *str);
-void	*ft_calloc(size_t nmemb, size_t size);
 
 // utils
 
+int	    ft_atoi(const char *str);
+void	*ft_calloc(size_t nmemb, size_t size);
 long ft_timestamp(struct timeval *start_time, struct timeval *cur_time);
 void ft_print_state2(data_t *data, long time_elapsed, int philo, char *msg);
 bool ft_has_prioryty(tread_data_t *tr_data);

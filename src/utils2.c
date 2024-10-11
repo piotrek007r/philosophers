@@ -1,43 +1,31 @@
 #include "../include/philosophers.h"
 
-void	ft_putstr_fd(char *s, int fd)
+bool	ft_death(tread_data_t *tr_data)
 {
-	unsigned int	counter;
-
-	counter = 0;
-	while (s[counter] != '\0')
+	pthread_mutex_lock(&tr_data->data->general);
+	if (tr_data->data->philo_died)
 	{
-		write(fd, &s[counter], 1);
-		counter++;
+		pthread_mutex_unlock(&tr_data->data->general);
+		return (true);
 	}
+	pthread_mutex_unlock(&tr_data->data->general);
+	return (false);
 }
 
-void	ft_putchar_fd(char c, int fd)
+bool	ft_all_feed(tread_data_t *tr_data)
 {
-	write(fd, &c, 1);
-	return ;
-}
-
-void	ft_putnbr_fd(int n, int fd)
-{
-	if (n == -2147483648)
+	if (tr_data->data->num_of_meals > 0)
 	{
-		ft_putchar_fd('-', fd);
-		ft_putchar_fd('2', fd);
-		n = 147483648;
+		if (tr_data->data->philo[tr_data->philo_index].times_eaten
+			== tr_data->data->num_of_meals)
+		{
+			pthread_mutex_lock(&tr_data->data->general);
+			tr_data->data->philo[tr_data->philo_index].is_feed = true;
+			pthread_mutex_unlock(&tr_data->data->general);
+			return (true);
+		}
 	}
-	if (n < 0)
-	{
-		ft_putchar_fd('-', fd);
-		n *= -1;
-	}
-	if (n >= 10)
-	{
-		ft_putnbr_fd(n / 10, fd);
-		ft_putchar_fd(n % 10 + '0', fd);
-	}
-	else
-		ft_putchar_fd(n + '0', fd);
+	return (false);
 }
 
 int	ft_atoi(const char *str)

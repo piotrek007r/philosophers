@@ -1,37 +1,37 @@
 #include "../include/philosophers.h"
 
-void	ft_eating(tread_data_t *tr_data, int left_fork, int right_fork)
+void	ft_eating(tread_data_t *tread, int l_fork, int r_fork)
 {
-	struct timeval start_eat;
-	long time_elapsed;
+	struct timeval	start_eat;
+	long			time;
 
 	while (1)
 	{
-		if (tr_data->data->forks[left_fork] == 0 && tr_data->data->forks[right_fork] == 0)
+		if (tread->data->forks[l_fork] == 0 && tread->data->forks[r_fork] == 0)
 		{
-			tr_data->data->forks[left_fork] = 1;
-			tr_data->data->forks[right_fork] = 1;
-			tr_data->data->philo[tr_data->philo_index].cur_state = EAT;
-			tr_data->data->philo[tr_data->philo_index].times_eaten++;
+			tread->data->forks[l_fork] = 1;
+			tread->data->forks[r_fork] = 1;
+			tread->data->philo[tread->philo_index].cur_state = EAT;
+			tread->data->philo[tread->philo_index].times_eaten++;
 			gettimeofday(&start_eat, NULL);
-			time_elapsed = ft_timestamp(&tr_data->data->start_time, &start_eat);
-			pthread_mutex_lock(&tr_data->data->general);
-			tr_data->data->philo[tr_data->philo_index].last_meal = time_elapsed;
-			pthread_mutex_unlock(&tr_data->data->general);
-			ft_print_state2(tr_data->data, time_elapsed, tr_data->philo_index, "is eating");
-			usleep(tr_data->data->time_to_eat * TIME_UNIT);
-			tr_data->data->forks[left_fork] = 0;
-			tr_data->data->forks[right_fork] = 0;
-			tr_data->data->philo[tr_data->philo_index].cur_state = SLEEP;
-			ft_print_state(tr_data, "is sleeping"); // might try to move to ft_sleeping
-			break;
+			time = ft_timestamp(&tread->data->start_time, &start_eat);
+			pthread_mutex_lock(&tread->data->general);
+			tread->data->philo[tread->philo_index].last_meal = time;
+			pthread_mutex_unlock(&tread->data->general);
+			ft_print_state2(tread->data, time, tread->philo_index, "is eating");
+			usleep(tread->data->time_to_eat * TIME_UNIT);
+			tread->data->forks[l_fork] = 0;
+			tread->data->forks[r_fork] = 0;
+			tread->data->philo[tread->philo_index].cur_state = SLEEP;
+			ft_print_state(tread, "is sleeping");
+			break ;
 		}
 	}
 }
 
-void ft_sleeping(tread_data_t *tr_data)
+void	ft_sleeping(tread_data_t *tr_data)
 {
-			usleep(tr_data->data->time_to_sleep * TIME_UNIT);
-			tr_data->data->philo[tr_data->philo_index].cur_state = THINK;
-			ft_print_state(tr_data, "is thinking");
+	usleep(tr_data->data->time_to_sleep * TIME_UNIT);
+	tr_data->data->philo[tr_data->philo_index].cur_state = THINK;
+	ft_print_state(tr_data, "is thinking");
 }
