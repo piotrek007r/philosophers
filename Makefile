@@ -1,6 +1,6 @@
 NAME	=	philosophers
-# CC		=	gcc -Wall -Wextra -Werror
-CC		= 	gcc
+CC		=	gcc -Wall -Wextra -Werror
+# CC		= 	gcc
 CFLAGS	=	-g -pthread -I include 
 
 SRCS = $(wildcard src/*.c)

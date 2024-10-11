@@ -26,7 +26,22 @@ void ft_destroy_mutex(data_t *data)
 	}
 }
 
+void ft_free_allocs(data_t *data, tread_data_t **tr_data)
+{
+	int i;
 
+	i = 0;
+	free(data->fork_mutexes);
+	free(data->forks);
+	free(data->philo_states);
+	free(data->philo);
+	while(i < data->num_of_philos)
+	{
+		free(tr_data[i]);
+		i++;
+	}
+	free(data);
+}
 
 void ft_close(data_t *data, pthread_t *th, tread_data_t **tr_data)
 {

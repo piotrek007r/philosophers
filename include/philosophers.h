@@ -24,9 +24,11 @@ typedef struct philo_s
     int status_change; // ??
     int has_eaten;
     int times_eaten;
+    int left_fork;
+    int right_fork;
+    long last_meal;
     bool is_feed;
     bool has_died;
-    long last_meal;
 } philo_t;
 
 typedef struct data_s
@@ -66,21 +68,36 @@ void	*ft_calloc(size_t nmemb, size_t size);
 
 // utils
 
-void	ft_tester(data_t *data, int key); // to remove
 long ft_timestamp(struct timeval *start_time, struct timeval *cur_time);
-void ft_print_state(data_t *data, long time_elapsed, int philo, char *msg);
+void ft_print_state2(data_t *data, long time_elapsed, int philo, char *msg);
 bool ft_has_prioryty(tread_data_t *tr_data);
-
+bool ft_death(tread_data_t *tr_data);
+void ft_print_state(tread_data_t *tr_data, char *str);
+bool ft_all_feed(tread_data_t *tr_data);
 
 // actions
 
-bool ft_death(data_t *data);
+void	ft_eating(tread_data_t *tr_data, int left_fork, int right_fork);
+void ft_sleeping(tread_data_t *tr_data);
 
-//
+// close
 
 void ft_destroy_mutex(data_t *data);
 void ft_close(data_t *data, pthread_t *th, tread_data_t **tr_data);
 void ft_free_allocs(data_t *data, tread_data_t **tr_data);
+
+// monitor
+
+void ft_monitor(data_t *data);
+long ft_monitor_iteration(data_t *data);
+void ft_monitor_check_death(data_t *data, long meal_times, long time_elapsed, int i);
+long ft_monitor_check_meals(data_t *data, long time_elapsed, int i);
+
+// routine
+
+void ft_fork_indexing(tread_data_t *tr_data);
+void ft_fork_acquisition(tread_data_t *tr_data, int left_fork, int right_fork);
+void	*ft_philo_routine(void *arg);
 
 
 #endif
