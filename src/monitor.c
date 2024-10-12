@@ -1,6 +1,6 @@
 #include "../include/philosophers.h"
 
-long	ft_monitor_check_meals(data_t *data, long time_elapsed, int i)
+long	ft_monitor_check_meals(t_data *data, long time_elapsed, int i)
 {
 	long	meal_times;
 
@@ -13,7 +13,7 @@ long	ft_monitor_check_meals(data_t *data, long time_elapsed, int i)
 	return (meal_times);
 }
 
-void	ft_monitor_check_death(data_t *data, long meal_times, long time_elapsed,
+void	ft_monitor_check_death(t_data *data, long meal_times, long time_elapsed,
 		int i)
 {
 	struct timeval	death_time;
@@ -31,7 +31,7 @@ void	ft_monitor_check_death(data_t *data, long meal_times, long time_elapsed,
 	pthread_mutex_unlock(&data->death_mutex);
 }
 
-long	ft_monitor_iteration(data_t *data)
+long	ft_monitor_iteration(t_data *data)
 {
 	struct timeval	cur_time;
 
@@ -40,7 +40,7 @@ long	ft_monitor_iteration(data_t *data)
 	return (ft_timestamp(&data->start_time, &cur_time));
 }
 
-void	ft_monitor(data_t *data)
+void	ft_monitor(t_data *data)
 {
 	int		i;
 	long	time_elapsed;

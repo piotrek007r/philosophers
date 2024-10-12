@@ -1,6 +1,6 @@
 #include "../include/philosophers.h"
 
-void	ft_eating(tread_data_t *tread, int l_fork, int r_fork)
+void	ft_eating(t_tread_data *tread, int l_fork, int r_fork)
 {
 	struct timeval	start_eat;
 	long			time;
@@ -29,7 +29,7 @@ void	ft_eating(tread_data_t *tread, int l_fork, int r_fork)
 	}
 }
 
-void	ft_sleeping(tread_data_t *tr_data)
+void	ft_sleeping(t_tread_data *tr_data)
 {
 	usleep(tr_data->data->time_to_sleep * TIME_UNIT);
 	tr_data->data->philo[tr_data->philo_index].cur_state = THINK;

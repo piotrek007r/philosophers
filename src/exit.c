@@ -1,6 +1,6 @@
 #include "../include/philosophers.h"
 
-void	ft_destroy_mutex(data_t *data)
+void	ft_destroy_mutex(t_data *data)
 {
 	int	i;
 
@@ -26,7 +26,7 @@ void	ft_destroy_mutex(data_t *data)
 	}
 }
 
-void	ft_free_allocs(data_t *data, tread_data_t **tr_data)
+void	ft_free_allocs(t_data *data, t_tread_data **tr_data)
 {
 	int	i;
 
@@ -43,7 +43,7 @@ void	ft_free_allocs(data_t *data, tread_data_t **tr_data)
 	free(data);
 }
 
-void	ft_close(data_t *data, pthread_t *th, tread_data_t **tr_data)
+void	ft_close(t_data *data, pthread_t *th, t_tread_data **tr_data)
 {
 	int	i;
 

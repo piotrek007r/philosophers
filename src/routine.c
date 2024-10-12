@@ -1,6 +1,6 @@
 #include "../include/philosophers.h"
 
-void	ft_fork_indexing(tread_data_t *tr_data)
+void	ft_fork_indexing(t_tread_data *tr_data)
 {
 	int	i;
 
@@ -12,7 +12,7 @@ void	ft_fork_indexing(tread_data_t *tr_data)
 		tr_data->data->philo[i].left_fork = i - 1;
 }
 
-void	ft_fork_acquisition(tread_data_t *tr_data, int left_fork,
+void	ft_fork_acquisition(t_tread_data *tr_data, int left_fork,
 		int right_fork)
 {
 	if (left_fork < right_fork)
@@ -33,11 +33,11 @@ void	ft_fork_acquisition(tread_data_t *tr_data, int left_fork,
 
 void	*ft_philo_routine(void *arg)
 {
-	tread_data_t	*tr_data;
+	t_tread_data	*tr_data;
 	int				left_fork;
 	int				right_fork;
 
-	tr_data = (tread_data_t *)arg;
+	tr_data = (t_tread_data *)arg;
 	ft_fork_indexing(tr_data);
 	left_fork = tr_data->data->philo[tr_data->philo_index].left_fork;
 	right_fork = tr_data->data->philo[tr_data->philo_index].right_fork;

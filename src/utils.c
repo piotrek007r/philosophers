@@ -1,6 +1,6 @@
 #include "../include/philosophers.h"
 
-bool	ft_has_prioryty(tread_data_t *tr_data)
+bool	ft_has_prioryty(t_tread_data *tr_data)
 {
 	int	i;
 	int	cur;
@@ -21,7 +21,7 @@ bool	ft_has_prioryty(tread_data_t *tr_data)
 	return (true);
 }
 
-void	ft_print_state2(data_t *data, long time_elapsed, int philo, char *msg)
+void	ft_print_state2(t_data *data, long time_elapsed, int philo, char *msg)
 {
 	pthread_mutex_lock(&data->print_mutex);
 	if (!data->philo_died)
@@ -29,7 +29,7 @@ void	ft_print_state2(data_t *data, long time_elapsed, int philo, char *msg)
 	pthread_mutex_unlock(&data->print_mutex);
 }
 
-void	ft_print_state(tread_data_t *tr_data, char *str)
+void	ft_print_state(t_tread_data *tr_data, char *str)
 {
 	struct timeval	cur_time;
 	long			time_elapsed;

@@ -1,6 +1,6 @@
 #include "../include/philosophers.h"
 
-bool	ft_death(tread_data_t *tr_data)
+bool	ft_death(t_tread_data *tr_data)
 {
 	pthread_mutex_lock(&tr_data->data->general);
 	if (tr_data->data->philo_died)
@@ -12,7 +12,7 @@ bool	ft_death(tread_data_t *tr_data)
 	return (false);
 }
 
-bool	ft_all_feed(tread_data_t *tr_data)
+bool	ft_all_feed(t_tread_data *tr_data)
 {
 	if (tr_data->data->num_of_meals > 0)
 	{
